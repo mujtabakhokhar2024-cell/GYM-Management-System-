@@ -1,0 +1,1034 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IronPulse - Gym Management System</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex antialiased selection:bg-emerald-500 selection:text-white">
+
+  <!-- Mobile Sidebar Backdrop -->
+  <div id="mobileBackdrop" class="fixed inset-0 bg-slate-900/60 z-30 hidden md:hidden"></div>
+
+  <!-- Sidebar Navigation -->
+  <aside id="sidebar" class="w-64 bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col justify-between fixed inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out border-r border-slate-800">
+    <div>
+      <!-- Brand Logo Header -->
+      <div class="p-5 flex items-center gap-3.5 border-b border-slate-800/80 bg-slate-950/40">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-900/30">
+          <i class="fas fa-dumbbell text-lg"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-white text-base tracking-tight leading-none gym-branding-name">IronPulse Gym</h1>
+          <span class="text-[11px] text-emerald-400 font-semibold tracking-wider uppercase mt-1 inline-block">Management v1.0</span>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="p-3 space-y-1.5 mt-3">
+        <a href="#dashboard" data-view="dashboard" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group">
+          <i class="fas fa-chart-pie w-5 text-center text-base group-hover:scale-110 transition-transform"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="#members" data-view="members" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group">
+          <i class="fas fa-users w-5 text-center text-base group-hover:scale-110 transition-transform"></i>
+          <span>Members Directory</span>
+        </a>
+
+        <a href="#warnings" data-view="warnings" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group">
+          <i class="fas fa-bell w-5 text-center text-base group-hover:scale-110 transition-transform"></i>
+          <span class="flex-1">Expiry Warnings</span>
+          <span id="navWarningBadge" class="bg-amber-500/20 text-amber-300 text-[11px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30">7 Days</span>
+        </a>
+
+        <a href="#payments" data-view="payments" class="nav-link flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group">
+          <i class="fas fa-receipt w-5 text-center text-base group-hover:scale-110 transition-transform"></i>
+          <span>Payment Ledger</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="p-4 border-t border-slate-800 bg-slate-950/50 space-y-3">
+      <div class="flex items-center justify-between">
+        <button onclick="openSettingsModal()" class="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors">
+          <i class="fas fa-cog"></i> Settings & Backup
+        </button>
+        <span class="text-[10px] text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-md border border-emerald-800/40">PKR 1,500/mo</span>
+      </div>
+      <div class="text-[11px] text-slate-500 flex items-center gap-1.5">
+        <i class="fas fa-map-marker-alt text-slate-600"></i>
+        <span class="truncate gym-branding-name">IronPulse Fitness</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col md:pl-64 min-w-0">
+
+    <!-- Top App Header -->
+    <header class="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <!-- Mobile Toggle Button -->
+        <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
+          <i class="fas fa-bars text-lg"></i>
+        </button>
+        <div>
+          <h2 class="font-bold text-slate-900 text-lg leading-tight gym-branding-name">IronPulse Fitness Club</h2>
+          <p class="text-xs text-slate-500 hidden sm:block">Standard Monthly Fee: <span class="font-semibold text-emerald-600">PKR 1,500</span></p>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="flex items-center gap-2.5">
+        <button onclick="openSettingsModal()" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors hidden sm:inline-flex" title="Gym Settings & Data Backup">
+          <i class="fas fa-sliders-h"></i>
+        </button>
+        <button onclick="openAddMemberModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all">
+          <i class="fas fa-user-plus text-xs"></i>
+          <span>Add Member</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Container Body -->
+    <main class="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto space-y-6">
+
+      <!-- ========================================================= -->
+      <!-- VIEW 1: DASHBOARD                                         -->
+      <!-- ========================================================= -->
+      <section id="viewDashboard" class="view-section space-y-6">
+        
+        <!-- Welcome Banner -->
+        <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white rounded-2xl p-6 sm:p-7 shadow-sm relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="relative z-10 space-y-1.5">
+            <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold border border-emerald-500/30">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Live Gym Status
+            </div>
+            <h3 class="text-2xl font-black tracking-tight">Overview & Expiry Monitor</h3>
+            <p class="text-slate-300 text-sm max-w-xl">Automated membership status tracking, 7-day expiry warnings, and PKR 1,500 standard monthly fee management.</p>
+          </div>
+          <div class="relative z-10 flex items-center gap-3">
+            <button onclick="openAddMemberModal()" class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-sm shadow-md transition-all flex items-center gap-2">
+              <i class="fas fa-plus"></i> New Member
+            </button>
+            <button onclick="navigateTo('warnings')" class="px-4 py-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-sm border border-slate-700 transition-all flex items-center gap-2">
+              <i class="fas fa-bell text-amber-400"></i> View Warnings
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 KPI Stat Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Total Members -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 card-shadow card-hover">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Members</span>
+              <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-base">
+                <i class="fas fa-users"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div id="dashTotalMembers" class="text-3xl font-black text-slate-900 tracking-tight">0</div>
+              <p class="text-xs text-slate-500 mt-1">All registered athletes</p>
+            </div>
+          </div>
+
+          <!-- Active Members -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 card-shadow card-hover">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Active Members</span>
+              <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base">
+                <i class="fas fa-check-circle"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div id="dashActiveMembers" class="text-3xl font-black text-emerald-600 tracking-tight">0</div>
+              <p class="text-xs text-slate-500 mt-1">Current valid memberships</p>
+            </div>
+          </div>
+
+          <!-- 7-Day Expiry Warnings -->
+          <div class="bg-white p-5 rounded-2xl border border-amber-200/80 bg-amber-50/20 card-shadow card-hover">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-800">Expiring in 7 Days</span>
+              <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-base">
+                <i class="fas fa-hourglass-half"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div id="dashExpiringMembers" class="text-3xl font-black text-amber-600 tracking-tight">0</div>
+              <p class="text-xs text-amber-700/80 mt-1 font-medium">Needs renewal reminder</p>
+            </div>
+          </div>
+
+          <!-- Expired Members -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 card-shadow card-hover">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-red-700">Expired Members</span>
+              <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-base">
+                <i class="fas fa-times-circle"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div id="dashExpiredMembers" class="text-3xl font-black text-red-600 tracking-tight">0</div>
+              <p class="text-xs text-slate-500 mt-1">Overdue memberships</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7-Day Urgent Expiry Alerts Section -->
+        <div class="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
+          <div class="p-4 sm:p-5 bg-gradient-to-r from-amber-500/10 via-amber-50/50 to-white border-b border-amber-200/80 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center text-sm shadow-xs">
+                <i class="fas fa-exclamation-triangle"></i>
+              </span>
+              <div>
+                <h3 class="font-bold text-slate-900 text-base">Membership Expiry Warnings (Next 7 Days)</h3>
+                <p class="text-xs text-slate-600">Send WhatsApp reminder or renew with standard fee PKR 1,500</p>
+              </div>
+            </div>
+            <button onclick="navigateTo('warnings')" class="text-xs font-semibold text-amber-800 hover:text-amber-900 flex items-center gap-1">
+              <span>View All Alerts</span>
+              <i class="fas fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+          
+          <div id="dashExpiringList" class="p-4 sm:p-5 space-y-3">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Financial Summary & Recent Payments -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Revenue Summary Card -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 card-shadow flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="font-bold text-slate-900 text-base">Revenue Overview</h4>
+                <span class="text-xs font-semibold text-slate-400">Total Collected</span>
+              </div>
+              <div class="p-5 rounded-2xl bg-slate-900 text-white space-y-2">
+                <span class="text-xs text-emerald-400 font-bold uppercase tracking-wider">Total Collection</span>
+                <div id="dashTotalRevenue" class="text-3xl font-black tracking-tight text-white">PKR 0</div>
+                <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                  <span>Standard Monthly Rate</span>
+                  <span class="font-semibold text-emerald-300">PKR 1,500</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between">
+              <button onclick="navigateTo('payments')" class="w-full py-2.5 text-center text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+                View Full Payments Ledger
+              </button>
+            </div>
+          </div>
+
+          <!-- Recent Payments Table -->
+          <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 card-shadow overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h4 class="font-bold text-slate-900 text-base">Recent Payments</h4>
+                <p class="text-xs text-slate-500">Latest recorded renewal fees & receipts</p>
+              </div>
+              <button onclick="navigateTo('payments')" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700">
+                View All
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left">
+                <thead>
+                  <tr class="bg-slate-50/70 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    <th class="py-3 px-4">Member</th>
+                    <th class="py-3 px-4">Amount</th>
+                    <th class="py-3 px-4">Date</th>
+                    <th class="py-3 px-4">Coverage Period</th>
+                    <th class="py-3 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="dashRecentPayments" class="divide-y divide-slate-100">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 2: MEMBERS DIRECTORY                                 -->
+      <!-- ========================================================= -->
+      <section id="viewMembers" class="view-section hidden space-y-6">
+        
+        <!-- Header & Action Row -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-2xl font-bold text-slate-900 tracking-tight">Members Directory</h3>
+            <p class="text-xs text-slate-500">Manage member profiles, automatic membership validity, and payment statuses</p>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <button onclick="openAddMemberModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-all">
+              <i class="fas fa-user-plus text-xs"></i>
+              <span>Add New Member</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Tabs & Search Bar -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 card-shadow flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+          
+          <!-- Filter Tabs -->
+          <div class="flex items-center border-b md:border-b-0 border-slate-200 pb-2 md:pb-0 overflow-x-auto gap-1 text-sm">
+            <button data-filter="all" class="member-filter-tab active px-3.5 py-2 rounded-xl font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 transition-all flex items-center gap-2 whitespace-nowrap">
+              <span>All Members</span>
+              <span id="countAllMembers" class="px-2 py-0.5 rounded-full text-xs bg-white text-emerald-800 font-bold">0</span>
+            </button>
+
+            <button data-filter="active" class="member-filter-tab px-3.5 py-2 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-2 whitespace-nowrap">
+              <span>Active</span>
+              <span id="countActiveMembers" class="px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-800 font-semibold">0</span>
+            </button>
+
+            <button data-filter="expiring" class="member-filter-tab px-3.5 py-2 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-2 whitespace-nowrap">
+              <span>Expiring in 7 Days</span>
+              <span id="countExpiringMembers" class="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-800 font-semibold">0</span>
+            </button>
+
+            <button data-filter="expired" class="member-filter-tab px-3.5 py-2 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-2 whitespace-nowrap">
+              <span>Expired</span>
+              <span id="countExpiredMembers" class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-800 font-semibold">0</span>
+            </button>
+          </div>
+
+          <!-- Search Input -->
+          <div class="relative flex-1 max-w-md">
+            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" id="memberSearchInput" placeholder="Search by name, phone number, or ID..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm transition-all" />
+          </div>
+
+        </div>
+
+        <!-- Members Table -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 card-shadow overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th class="py-3.5 px-4">Member Info</th>
+                  <th class="py-3.5 px-4">Phone Number</th>
+                  <th class="py-3.5 px-4">Start Date</th>
+                  <th class="py-3.5 px-4">End Date</th>
+                  <th class="py-3.5 px-4">Status</th>
+                  <th class="py-3.5 px-4">Total Paid</th>
+                  <th class="py-3.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="membersTableBody" class="divide-y divide-slate-100">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 3: MEMBER PROFILE PAGE                               -->
+      <!-- ========================================================= -->
+      <section id="viewMemberProfile" class="view-section hidden space-y-6">
+        
+        <!-- Back Navigation & Actions -->
+        <div class="flex items-center justify-between">
+          <button onclick="navigateTo('members')" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Members</span>
+          </button>
+          
+          <div class="flex items-center gap-2">
+            <button id="profEditBtn" class="px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex items-center gap-1.5">
+              <i class="fas fa-edit"></i> Edit Details
+            </button>
+            <button id="profDeleteBtn" class="px-3 py-2 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-colors flex items-center gap-1.5">
+              <i class="fas fa-trash-alt"></i> Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- Member Profile Main Card -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 card-shadow p-6 sm:p-8">
+          <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+            
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+              <div class="relative">
+                <img id="profPhoto" src="" alt="Profile" class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-slate-100 shadow-md" />
+              </div>
+              <div class="space-y-1.5">
+                <div class="flex flex-wrap items-center gap-3">
+                  <h2 id="profName" class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Ali Khan</h2>
+                  <span id="profId" class="text-xs font-mono font-bold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg">MEM-1001</span>
+                </div>
+                <div class="flex items-center gap-2 text-slate-600 text-sm">
+                  <i class="fas fa-phone text-emerald-600"></i>
+                  <span id="profPhone" class="font-semibold">0300-1234567</span>
+                </div>
+                <div class="pt-1">
+                  <div id="profStatusBadge" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold">
+                    <!-- Status Badge -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Profile CTA Actions -->
+            <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+              <a id="profWhatsAppBtn" href="#" target="_blank" class="flex-1 sm:flex-none px-4 py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-semibold rounded-xl text-xs flex items-center justify-center gap-2 transition-colors">
+                <i class="fab fa-whatsapp text-emerald-600 text-base"></i>
+                <span>WhatsApp Reminder</span>
+              </a>
+              <button id="profRenewBtn" class="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition-all">
+                <i class="fas fa-redo-alt"></i>
+                <span>Renew Membership (PKR 1,500)</span>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Validity & Financial Summary Row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
+            
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Membership Start</span>
+              <div id="profStartDate" class="text-base font-bold text-slate-800 mt-1">22 Aug 2026</div>
+              <span class="text-[11px] text-slate-400">Initial registration date</span>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Membership End Date</span>
+              <div id="profEndDate" class="text-base font-bold text-slate-800 mt-1">22 Sep 2026</div>
+              <span class="text-[11px] text-slate-400">Current expiry deadline</span>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Amount Paid</span>
+              <div id="profTotalPaid" class="text-base font-bold text-emerald-600 mt-1">PKR 1,500</div>
+              <span class="text-[11px] text-slate-400">Lifetime fee contributions</span>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Transactions</span>
+              <div id="profTotalPaymentsCount" class="text-base font-bold text-slate-800 mt-1">1 Payment</div>
+              <span class="text-[11px] text-slate-400">Recorded renewal invoices</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Member Payment History Section -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 card-shadow overflow-hidden">
+          <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h4 class="font-bold text-slate-900 text-base">Payment & Renewal History</h4>
+              <p class="text-xs text-slate-500">All fees collected from this member</p>
+            </div>
+            <button onclick="openRenewModal(currentMemberId)" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1.5">
+              <i class="fas fa-plus"></i> Record New Payment
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th class="py-3 px-4">Receipt #</th>
+                  <th class="py-3 px-4">Payment Date</th>
+                  <th class="py-3 px-4">Amount</th>
+                  <th class="py-3 px-4">Membership Period</th>
+                  <th class="py-3 px-4">Method</th>
+                  <th class="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="profPaymentHistoryBody" class="divide-y divide-slate-100">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 4: EXPIRY WARNINGS (7 DAYS & EXPIRED)                -->
+      <!-- ========================================================= -->
+      <section id="viewWarnings" class="view-section hidden space-y-6">
+        
+        <div>
+          <h3 class="text-2xl font-bold text-slate-900 tracking-tight">Expiry Alerts & Renewal Monitor</h3>
+          <p class="text-xs text-slate-500">Track 7-day expiration countdowns and overdue memberships</p>
+        </div>
+
+        <!-- 7-Day Expiry Warning Card -->
+        <div class="bg-white rounded-2xl border border-amber-200 card-shadow overflow-hidden">
+          <div class="p-5 bg-gradient-to-r from-amber-500/15 via-amber-50/60 to-white border-b border-amber-200/80 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg shadow-sm">
+                <i class="fas fa-hourglass-half"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-900 text-base">Memberships Expiring in the Next 7 Days</h4>
+                <p class="text-xs text-slate-600">Send reminder messages or process renewal</p>
+              </div>
+            </div>
+            <span id="warningsExpiringCount" class="text-base font-black px-3 py-1 bg-amber-200 text-amber-900 rounded-xl border border-amber-300">0</span>
+          </div>
+
+          <div id="warningsExpiringList" class="p-5 space-y-3">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Expired Members Card -->
+        <div class="bg-white rounded-2xl border border-red-200 card-shadow overflow-hidden">
+          <div class="p-5 bg-gradient-to-r from-red-500/10 via-red-50/50 to-white border-b border-red-200/80 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center text-lg shadow-sm">
+                <i class="fas fa-times-circle"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-900 text-base">Expired Memberships (Overdue)</h4>
+                <p class="text-xs text-slate-600">Members whose membership validity has passed</p>
+              </div>
+            </div>
+            <span id="warningsExpiredCount" class="text-base font-black px-3 py-1 bg-red-200 text-red-900 rounded-xl border border-red-300">0</span>
+          </div>
+
+          <div id="warningsExpiredList" class="p-5 space-y-3">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 5: PAYMENTS LEDGER                                   -->
+      <!-- ========================================================= -->
+      <section id="viewPayments" class="view-section hidden space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-2xl font-bold text-slate-900 tracking-tight">Payment Ledger</h3>
+            <p class="text-xs text-slate-500">Complete transaction history of all gym membership collections</p>
+          </div>
+          
+          <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-xs">
+            <span class="text-xs text-slate-500">Total Sum:</span>
+            <span id="paymentsTotalSum" class="text-base font-black text-emerald-600">PKR 0</span>
+            <span class="text-slate-300">|</span>
+            <span id="paymentsCount" class="text-xs font-bold text-slate-700">0 Payments</span>
+          </div>
+        </div>
+
+        <!-- Payments Search Bar -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 card-shadow flex items-center gap-3">
+          <i class="fas fa-search text-slate-400"></i>
+          <input type="text" id="paymentSearchInput" placeholder="Search payments by member name, receipt number, or payment method..." class="w-full text-sm outline-none bg-transparent" />
+        </div>
+
+        <!-- Payments Table -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 card-shadow overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th class="py-3.5 px-4">Receipt #</th>
+                  <th class="py-3.5 px-4">Member Name</th>
+                  <th class="py-3.5 px-4">Amount Paid</th>
+                  <th class="py-3.5 px-4">Payment Date</th>
+                  <th class="py-3.5 px-4">Period Covered</th>
+                  <th class="py-3.5 px-4">Method</th>
+                  <th class="py-3.5 px-4 text-right">Receipt Slip</th>
+                </tr>
+              </thead>
+              <tbody id="allPaymentsTableBody" class="divide-y divide-slate-100">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODALS                                                    -->
+  <!-- ========================================================= -->
+
+  <!-- 1. ADD MEMBER MODAL -->
+  <div id="addMemberModal" class="modal-container fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content relative bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 sm:p-7 overflow-y-auto max-h-[90vh] z-10 space-y-5 border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+            <i class="fas fa-user-plus"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-slate-900 text-lg">Add New Gym Member</h3>
+            <p class="text-xs text-slate-500">Auto-computes 1 month validity and initial PKR 1,500 payment</p>
+          </div>
+        </div>
+        <button onclick="closeModal('addMemberModal')" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+          <i class="fas fa-times text-lg"></i>
+        </button>
+      </div>
+
+      <form id="addMemberForm" class="space-y-4">
+        <!-- Photo Selection -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Member Profile Picture</label>
+          <div class="flex items-center gap-4">
+            <img id="addPhotoPreview" src="https://ui-avatars.com/api/?name=New+Member&background=0f172a&color=fff" class="w-16 h-16 rounded-2xl object-cover border-2 border-slate-200 shadow-xs" />
+            <div class="space-y-1.5 flex-1">
+              <input type="file" id="addPhotoFileInput" accept="image/*" onchange="handlePhotoUpload(this, document.getElementById('addPhotoPreview'), document.getElementById('addPhotoBase64'))" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer" />
+              <input type="hidden" id="addPhotoBase64" />
+              <!-- Quick Preset Avatars -->
+              <div class="flex items-center gap-1.5 pt-1">
+                <span class="text-[11px] text-slate-400">Or avatar presets:</span>
+                <button type="button" onclick="selectAvatarPreset('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', 'addPhotoPreview', 'addPhotoBase64')" class="w-6 h-6 rounded-full overflow-hidden border border-slate-300 hover:scale-110 transition-transform">
+                  <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" class="w-full h-full object-cover" />
+                </button>
+                <button type="button" onclick="selectAvatarPreset('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', 'addPhotoPreview', 'addPhotoBase64')" class="w-6 h-6 rounded-full overflow-hidden border border-slate-300 hover:scale-110 transition-transform">
+                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80" class="w-full h-full object-cover" />
+                </button>
+                <button type="button" onclick="selectAvatarPreset('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80', 'addPhotoPreview', 'addPhotoBase64')" class="w-6 h-6 rounded-full overflow-hidden border border-slate-300 hover:scale-110 transition-transform">
+                  <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80" class="w-full h-full object-cover" />
+                </button>
+                <button type="button" onclick="selectAvatarPreset('https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80', 'addPhotoPreview', 'addPhotoBase64')" class="w-6 h-6 rounded-full overflow-hidden border border-slate-300 hover:scale-110 transition-transform">
+                  <img src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80" class="w-full h-full object-cover" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Name & Phone -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Full Name <span class="text-red-500">*</span></label>
+            <input type="text" id="addFullName" required placeholder="e.g. Ali Khan" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Phone Number <span class="text-red-500">*</span></label>
+            <input type="text" id="addPhone" required placeholder="e.g. 0300-1234567" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
+          </div>
+        </div>
+
+        <!-- Start & End Date (Auto-calculated 1 month) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Membership Start Date <span class="text-red-500">*</span></label>
+            <input type="date" id="addStartDate" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 bg-white" />
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-bold text-slate-700">Membership End Date <span class="text-red-500">*</span></label>
+              <span class="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded">+1 Month Auto</span>
+            </div>
+            <input type="date" id="addEndDate" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 bg-white" />
+          </div>
+        </div>
+
+        <!-- Initial Payment Recording -->
+        <div class="p-3.5 bg-emerald-50/60 rounded-xl border border-emerald-200/80 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+              <i class="fas fa-receipt text-emerald-600"></i> Initial Payment Recording
+            </span>
+            <span class="text-[11px] text-emerald-700 font-medium">Standard Fee: PKR 1,500</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Fee Amount (PKR)</label>
+              <input type="number" id="addFeeAmount" value="1500" min="0" step="50" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm font-bold text-emerald-700 focus:outline-none bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Payment Method</label>
+              <select id="addPaymentMethod" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none bg-white">
+                <option value="Cash">Cash</option>
+                <option value="JazzCash">JazzCash</option>
+                <option value="EasyPaisa">EasyPaisa</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('addMemberModal')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+            <i class="fas fa-check"></i>
+            <span>Register & Save Member</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. EDIT MEMBER MODAL -->
+  <div id="editMemberModal" class="modal-container fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content relative bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 sm:p-7 overflow-y-auto max-h-[90vh] z-10 space-y-5 border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
+            <i class="fas fa-user-edit"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-slate-900 text-lg">Edit Member Information</h3>
+            <p class="text-xs text-slate-500">Update member profile, phone, or validity window</p>
+          </div>
+        </div>
+        <button onclick="closeModal('editMemberModal')" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+          <i class="fas fa-times text-lg"></i>
+        </button>
+      </div>
+
+      <form id="editMemberForm" class="space-y-4">
+        <input type="hidden" id="editMemberId" />
+
+        <!-- Photo -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Profile Picture</label>
+          <div class="flex items-center gap-4">
+            <img id="editPhotoPreview" src="" class="w-16 h-16 rounded-2xl object-cover border-2 border-slate-200 shadow-xs" />
+            <div class="space-y-1.5 flex-1">
+              <input type="file" id="editPhotoFileInput" accept="image/*" onchange="handlePhotoUpload(this, document.getElementById('editPhotoPreview'), document.getElementById('editPhotoBase64'))" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer" />
+              <input type="hidden" id="editPhotoBase64" />
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Full Name <span class="text-red-500">*</span></label>
+            <input type="text" id="editFullName" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Phone Number <span class="text-red-500">*</span></label>
+            <input type="text" id="editPhone" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Membership Start Date</label>
+            <input type="date" id="editStartDate" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none bg-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Membership End Date</label>
+            <input type="date" id="editEndDate" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none bg-white" />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('editMemberModal')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+            <i class="fas fa-save"></i>
+            <span>Save Changes</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. RENEW / RECORD PAYMENT MODAL -->
+  <div id="renewModal" class="modal-container fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content relative bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-7 overflow-y-auto max-h-[90vh] z-10 space-y-5 border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+            <i class="fas fa-redo-alt"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-slate-900 text-lg">Renew Membership & Payment</h3>
+            <p class="text-xs text-slate-500">Record fee collection and automatically extend expiry</p>
+          </div>
+        </div>
+        <button onclick="closeModal('renewModal')" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+          <i class="fas fa-times text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Member Summary Banner -->
+      <div class="p-3.5 bg-slate-900 text-white rounded-xl flex items-center justify-between">
+        <div>
+          <span class="text-[11px] text-slate-400 uppercase tracking-wider block">Member</span>
+          <h4 id="renewMemberName" class="font-bold text-base text-white">Ali Khan</h4>
+        </div>
+        <div class="text-right">
+          <span class="text-[11px] text-slate-400 uppercase tracking-wider block">Current End Date</span>
+          <span id="renewCurrentEnd" class="text-xs font-bold text-amber-300">22 Aug 2026</span>
+        </div>
+      </div>
+
+      <form id="renewForm" class="space-y-4">
+        <input type="hidden" id="renewMemberId" />
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Payment Date <span class="text-red-500">*</span></label>
+          <input type="date" id="renewPaymentDate" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">New Start Date <span class="text-red-500">*</span></label>
+            <input type="date" id="renewStartDate" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none bg-white" />
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-bold text-slate-700">New End Date <span class="text-red-500">*</span></label>
+              <span class="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded">+1 Month</span>
+            </div>
+            <input type="date" id="renewEndDate" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none bg-white" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Fee Amount (PKR) <span class="text-red-500">*</span></label>
+            <input type="number" id="renewAmount" value="1500" min="0" step="50" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-emerald-700 focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Payment Method</label>
+            <select id="renewMethod" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none bg-white">
+              <option value="Cash">Cash</option>
+              <option value="JazzCash">JazzCash</option>
+              <option value="EasyPaisa">EasyPaisa</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Notes / Reference</label>
+          <input type="text" id="renewNotes" value="Monthly Renewal" placeholder="e.g. Monthly membership renewal" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none" />
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('renewModal')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+            <i class="fas fa-check-circle"></i>
+            <span>Confirm & Record Renewal</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. RECEIPT SLIP MODAL (PRINTABLE) -->
+  <div id="receiptModal" class="modal-container fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content receipt-printable relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-7 overflow-y-auto max-h-[90vh] z-10 space-y-6 border border-slate-200">
+      
+      <!-- Receipt Header -->
+      <div class="text-center pb-4 border-b-2 border-dashed border-slate-200">
+        <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg mx-auto mb-2">
+          <i class="fas fa-dumbbell"></i>
+        </div>
+        <h3 id="receiptGymName" class="font-extrabold text-slate-900 text-lg tracking-tight">IronPulse Fitness Club</h3>
+        <p id="receiptGymAddress" class="text-xs text-slate-500 mt-0.5">Main Boulevard, Gulberg III, Lahore</p>
+        <p id="receiptGymPhone" class="text-xs text-slate-500">Phone: 0300-1122334</p>
+        <div class="inline-block mt-2 px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[11px] font-bold rounded-full uppercase tracking-wider">
+          Official Payment Receipt
+        </div>
+      </div>
+
+      <!-- Receipt Meta Details -->
+      <div class="space-y-2 text-xs">
+        <div class="flex justify-between">
+          <span class="text-slate-500">Receipt No:</span>
+          <span id="receiptNo" class="font-mono font-bold text-slate-900">PAY-2001</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Date of Payment:</span>
+          <span id="receiptDate" class="font-medium text-slate-800">22 Aug 2026</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Member Name:</span>
+          <span id="receiptMemberName" class="font-bold text-slate-900">Ali Khan</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Member Phone:</span>
+          <span id="receiptMemberPhone" class="text-slate-800">0300-1234567</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Member ID:</span>
+          <span id="receiptMemberId" class="font-mono text-slate-700">MEM-1001</span>
+        </div>
+      </div>
+
+      <!-- Membership Period Box -->
+      <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
+        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Membership Validity Period</span>
+        <div id="receiptPeriod" class="text-xs font-bold text-slate-800">22 Aug 2026 to 22 Sep 2026</div>
+        <div class="text-[11px] text-slate-500 flex justify-between pt-1 border-t border-slate-200">
+          <span>Payment Method: <strong id="receiptMethod" class="text-slate-700">Cash</strong></span>
+          <span id="receiptNotes" class="italic text-slate-500">Monthly Fee</span>
+        </div>
+      </div>
+
+      <!-- Amount Total Box -->
+      <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between">
+        <span class="font-bold text-xs uppercase tracking-wider text-emerald-900">Total Amount Paid</span>
+        <span id="receiptAmount" class="text-xl font-black text-emerald-700">PKR 1,500</span>
+      </div>
+
+      <!-- Signatures / Footer -->
+      <div class="pt-4 border-t border-slate-100 text-center space-y-3">
+        <div class="flex justify-between text-[11px] text-slate-400 pt-6">
+          <div class="border-t border-slate-300 px-4 pt-1">Member Signature</div>
+          <div class="border-t border-slate-300 px-4 pt-1">Authorized Cashier</div>
+        </div>
+        <p class="text-[10px] text-slate-400">Thank you for working out with us! Non-transferable.</p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="no-print flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+        <button onclick="closeModal('receiptModal')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+          Close
+        </button>
+        <button onclick="window.print()" class="px-5 py-2.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+          <i class="fas fa-print"></i>
+          <span>Print Receipt</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 5. SETTINGS & DATA BACKUP MODAL -->
+  <div id="settingsModal" class="modal-container fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div class="modal-backdrop fixed inset-0"></div>
+    <div class="modal-content relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-7 overflow-y-auto max-h-[90vh] z-10 space-y-5 border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
+            <i class="fas fa-sliders-h"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-slate-900 text-lg">Gym Settings & Backup</h3>
+            <p class="text-xs text-slate-500">Configure gym branding and manage data files</p>
+          </div>
+        </div>
+        <button onclick="closeModal('settingsModal')" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+          <i class="fas fa-times text-lg"></i>
+        </button>
+      </div>
+
+      <form id="settingsForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Gym Name</label>
+          <input type="text" id="setGymName" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Gym Contact Phone</label>
+          <input type="text" id="setGymPhone" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Gym Address</label>
+          <input type="text" id="setGymAddress" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Standard Monthly Fee (PKR)</label>
+          <input type="number" id="setDefaultFee" value="1500" min="100" step="50" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm font-bold text-emerald-700 focus:outline-none focus:border-emerald-500" />
+        </div>
+
+        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition-colors">
+          Save Settings
+        </button>
+      </form>
+
+      <!-- Data Backup & Restore Section -->
+      <div class="pt-4 border-t border-slate-100 space-y-3">
+        <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">Data Management</span>
+        
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="exportDataFile()" class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+            <i class="fas fa-download text-slate-500"></i> Export Backup
+          </button>
+          <label class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-center">
+            <i class="fas fa-upload text-slate-500"></i> Restore Backup
+            <input type="file" accept=".json" onchange="importDataFile(this)" class="hidden" />
+          </label>
+        </div>
+
+        <button type="button" onclick="resetDemoDataAction()" class="w-full py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-dashed border-red-200">
+          <i class="fas fa-history mr-1"></i> Reset to Sample Demo Data
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notifications Container -->
+  <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
